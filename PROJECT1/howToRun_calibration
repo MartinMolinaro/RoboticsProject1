@@ -1,0 +1,77 @@
+Brief instructions put the folders in robotics/src:
+
+✳️In Terminal:
+>> cd robotics
+>> catkin_make && roslaunch ros1 launcher.launch
+
+✳️In Other Terminal:
+>> cd robotics/src/ros_project1/launch
+>> rosbag play --clock bag1.bag && rosservice call /reset_ticks 17313 11359 15421 13209 && rosservice call /reset_pos 0.0 0.0 0.0
+or 
+>> rosbag play --clock bag2.bag && rosservice call /reset_ticks 17269 11412 15462 13165 && rosservice call /reset_pos 0.0 0.0 0.0
+>> rosbag play --clock bag3.bag && rosservice call /reset_ticks 23501 17600 21727 19381 && rosservice call /reset_pos 0.0 0.0 0.0
+
+⚠️ WHEN CHANGING THE BAG: to avoid an initial offset you need to click "reset" in the left bottom corner of rviz, then quickly play the bag, sometimes it starts anyway with an offset inthat case repeat the process anothertime and it should work
+
+🔹️For calibration (already with final choice):
+>> rosbag play --clock bag1.bag && rosservice call /reset_ticks 17313 11359 15421 13209 && rosservice call /reset_pos 0.0 0.0 0.0 && rosservice call /calibration 0.077 0.18 0.17 5 43 
+
+>> rosbag play --clock bag2.bag && rosservice call /reset_ticks 17269 11412 15462 13165 && rosservice call /reset_pos 0.0 0.0 0.0 && rosservice call /calibration 0.077 0.18 0.17 5 43
+
+>> rosbag play --clock bag3.bag && rosservice call /reset_ticks 23501 17600 21727 19381 && rosservice call /reset_pos 0.0 0.0 0.0 && rosservice call /calibration 0.077 0.18 0.17 5 43
+
+
+
+
+HYSTORY OF RUN TESTS: 
+   
+  🎒️ Bag Performance (Test 0-):
+  -bag1: ✔️ (the best)
+  -bag2: ❕️(first part ok, last rotation deviation)
+  -bag3: ✅️
+
+  ➡️ Given Data: 
+    r= 0.07;  // wheel radius
+    l= 0.2;   // wheel position along x
+    w=0.169;  // wheel position along y
+    T=5;      // gear ratio
+    N=42;     // CPR encoder
+
+  ▶️ Tests:                  bag1  bag2  bag3 (✖️=no improvements,✅️=small improovement, ✔️=far better than original 0-,❌️=worst)
+  1- 0.069 0.2 0.169 5 42 :   ✖️    ✖️   ✖️
+  2- 0.07 0.2 0.169 5 43  :   ✅️    ✖️   ✖️
+  3- 0.069 0.2 0.169 5 44 :   ✖️    ❌️   ✖️
+  4- 0.075 0.2 0.169 5 43 :   ✅️    ✅️   ✅️ (for bag2: better first part than 5-, but still a bit of rotation deviation but better than 0-)
+  5- 0.08 0.2 0.169 5 42  :   ✅️    ✅️   ✅️ (for bag2:first part worse than 0- and 4-, but rotation issue is a little bit better)
+  6- 0.08 0.2 0.169 5 43  :   ✅️    ✔️   ✅️ (for bag2: better than 5-, rotation issue corrected but bigger horiz. offsets)
+  7- 0.08 0.2 0.169 5 41  :   ✅️    ✅️   ✅️ (for bag2: similar to 5-)
+  --> Start from test 6- (so comparison signs wrt test 6- and focus on bag 2 (if bag2=✔️ then check also bag1 and bag3)
+  8- 0.08 0.25 0.169 5 43:          ❌️       (for bag2: similar to 5-)
+  9- 0.08 0.15 0.169 5 43:          ❌️       (for bag2: similar to 5-, but worse first part)
+ 10- 0.08 0.21 0.169 5 43:          ❌️       (for bag2: worse than 6-, but rotation deviation is in the opposite direction)
+ 11- 0.08 0.21 0.168 5 43:          ✅️       (for bag2: smaller offset than 6-)
+ 12- 0.08 0.205 0.1675 5 43:        ✅️       (for bag2: similar, but slightly worse than 11-)
+ 13- 0.08 0.205 0.1685 5 43:        ✅️       (for bag2: similar to 11-)
+ 14- 0.08 0.205 0.1685 4 43:        ✅️       (for bag2: similar to 11-)
+ 15- 0.08 0.205 0.1685 6 43:        ❌️       (for bag2: totally worse than 0- and 6-)
+ 16- 0.077 0.205 0.1688 5 43:       ❌️       (for bag2: worse than 6-, rotation deviation came back)
+ 17- 0.079 0.205 0.1687 5 43:       ✅️       (for bag2: but worse than 11-)
+ 18- 0.079 0.207 0.1687 5 43:       ✅️       (for bag2: slightly better than 17-)
+ 19- 0.0795 0.2095 0.1685 5 43:     ✅️       (for bag2: similar to 11-)
+ 20- 0.0805 0.215 0.1682 5 43:      ✅️       (for bag2: similar, but slightly better 11-)
+  --> Start from test 20- (so comparison signs wrt test 20- and focus on bag 2 (if bag2=✔️ then check also bag1 and bag3)
+ 21- 0.08 0.19 0.17 5 43:           ✅️       (for bag2: similar to 6-, but better first part)
+ 22- 0.08 0.18 0.17 5 43:      ✖️   ✅️       (for bag2: better second part (no deviation, less offset) wrt 20-, first part similar to 6-. For bag1: the overall behaviour is good, but 20- has less offset)
+          
+ 23- 0.0805 0.18 0.17 5 43:    ✅️  ✖️          (for bag1: less offset than in 22-, basically similar to 20-; the offset problem however is solved when integrating with Runge-Kutta.
+For bag 2: a bit worse then 22- during all the motion)
+
+24- 0.077 0.18 0.17 5 43        ✅️  ✔️  ✅️     (for bag1: very good during all the movement, almost no offset (use Runge-Kutta). for bag2: maybe there is a small improvement in the second part of the motion (use RK), bag3: similar to original)
+
+25- 0.076 0.18 0.17 5 43        ✖️  ✅️       (no major improvements)
+
+
+Final choice: test 24- 0.077 0.18 0.17 5 43
+ 
+    
+

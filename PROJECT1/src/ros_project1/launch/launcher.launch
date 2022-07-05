@@ -1,0 +1,36 @@
+<launch>
+    <!-- Set the initial pose of the robot -->
+    <param name="InitialX" type="double" value="0.0" />
+    <param name="InitialY" type="double" value="0.0" />
+    <param name="InitialTheta" type="double" value="0.0" />
+
+    <!-- Set the static transformation -->
+
+    <!-- bag1 initial position and orientation -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="worldToOdom" args="0.00815962441266 0.003059721319 0.368708342314 -0.0115776332095 -0.0207516606897 -0.0195951275527 0.999525606632 world odom"/>
+
+    <!-- bag2 initial position and orientation -->
+    <!-- node pkg="tf2_ros" type="static_transform_publisher" name="worldToOdom" args="0.0242218170315 0.00374252465554 0.372348427773 0.0338488332927 -0.0555740334094 -0.00280516617931 0.997876763344 world odom"/ -->
+
+    <!-- bag3 initial position and orientation -->
+    <!-- node pkg="tf2_ros" type="static_transform_publisher" name="worldToOdom" args="0.00546012399718 0.0399703718722 0.370361357927 -0.0105932056904 -0.0247681923211 -0.00675158947706 0.999614357948 world odom"/ -->
+
+    
+    <!-- Launch ComputeOdometry -->
+    <node pkg="ros1" type="ComputeOdometry" name="ComputeOdometry"/>
+    
+
+    <!-- Launch the dynamic configurator -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure"/>
+
+        
+    <!-- Launch rviz (to show odom vs given pose)-->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find ros1)/rviz/ros1.rviz" />
+
+
+   <!-- Launch rqt_plot for comarison between computed and given wheel velocities -->
+   <node pkg="rqt_plot" type="rqt_plot" output="screen" name="rqt_plot" args="/wheel_states/velocity[0] /wheel_states/velocity[1] /wheel_states/velocity[2] /wheel_states/velocity[3] /wheels_rpm/rpm_fl /wheels_rpm/rpm_fr /wheels_rpm/rpm_rl /wheels_rpm/rpm_rr"/>
+
+
+
+</launch>
